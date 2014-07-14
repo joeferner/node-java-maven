@@ -1,0 +1,11 @@
+#!/usr/bin/env node
+
+'use strict';
+
+var mvn = require('../');
+
+mvn(function(err) {
+  if (err) {
+    console.error(err);
+  }
+});
