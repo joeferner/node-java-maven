@@ -4,7 +4,7 @@
 
 var mvn = require('../');
 
-mvn({}, function(err, results) {
+mvn({ debug: true }, function(err, results) {
   if (err) {
     return console.error(err);
   }
