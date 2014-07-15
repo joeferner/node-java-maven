@@ -1,6 +1,6 @@
 {
   "name": "node-java-maven",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Utility for Node's java module to load mvn dependencies.",
   "main": "index.js",
   "keywords": [
