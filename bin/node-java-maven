@@ -4,8 +4,9 @@
 
 var mvn = require('../');
 
-mvn(function(err) {
+mvn({}, function(err, results) {
   if (err) {
     console.error(err);
   }
+  console.log(results.classpath);
 });
