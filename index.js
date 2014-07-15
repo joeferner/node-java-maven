@@ -7,10 +7,22 @@ var request = require('request');
 var path = require('path');
 var mkdirp = require('mkdirp');
 
-module.exports = function(options, callback) {
+module.exports = function(/*options, callback*/) {
+  var options;
+  var callback;
+  if (arguments.length == 1) {
+    options = {};
+    callback = arguments[0];
+  } else if (arguments.length == 2) {
+    options = arguments[0];
+    callback = arguments[1];
+  } else {
+    throw new Error('Expected 1 or 2 arguments not ' + arguments.length);
+  }
+
   options = options || {};
   options.baseUrl = options.baseUrl || 'http://central.maven.org/maven2/';
-  options.javaModulesPath = options.javaModulesPath || path.join(process.cwd(), 'java_modules');
+  options.javaModulesPath = options.javaModulesPath || path.join(getUserHome(), '.m2/repository');
 
   var dependencies = [];
   var errors = [];
@@ -42,6 +54,10 @@ module.exports = function(options, callback) {
   });
 
   /***************************************************************************************/
+
+  function getUserHome() {
+    return process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE;
+  }
 
   function dependencyQueuePush(dependency) {
     // TODO make sure this dependency isn't already in the tasks list

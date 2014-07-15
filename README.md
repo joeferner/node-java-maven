@@ -29,7 +29,7 @@ node-java-maven
         var java = require('java');
         var mvn = require('node-java-maven');
 
-        mvn({ javaModulesPath: path.join(__dirname, 'java_modules') }, function(err, mvnResults) {
+        mvn(function(err, mvnResults) {
           if (err) {
             return console.error('could not resolve maven dependencies', err);
           }
