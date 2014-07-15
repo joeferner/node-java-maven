@@ -8,35 +8,24 @@ var path = require('path');
 var mkdirp = require('mkdirp');
 
 module.exports = function(options, callback) {
-  var options = options || {};
+  options = options || {};
   options.baseUrl = options.baseUrl || 'http://central.maven.org/maven2/';
   options.javaModulesPath = options.javaModulesPath || path.join(process.cwd(), 'java_modules');
 
-  var dependencyTree = [];
+  var dependencies = [];
   var errors = [];
 
-  var dependencyQueue = async.queue(processDependency, 10);
+  var dependencyQueue = async.queue(processDependency, 1);
   dependencyQueue.drain = function() {
     if (errors.length > 0) {
       return callback(errors);
     }
-    var classpath = getClasspathFromDependencies(dependencyTree);
+    var classpath = getClasspathFromDependencies(dependencies);
     return callback(null, {
       classpath: classpath,
-      dependencyTree: dependencyTree
+      dependencies: dependencies
     });
   };
-
-  function processDependency(dependency, callback) {
-    return resolveDependency(dependency, function(err, resolvedDependency) {
-      if (err) {
-        errors.push(err);
-        return callback(err);
-      }
-      dependencyTree.push(resolvedDependency);
-      return callback();
-    });
-  }
 
   return readPackageJson(function(err, packageJson) {
     if (err) {
@@ -48,9 +37,41 @@ module.exports = function(options, callback) {
     }
 
     return packageJson.java.dependencies.forEach(function(d) {
-      dependencyQueue.push(d);
+      dependencyQueuePush(d);
     });
   });
+
+  /***************************************************************************************/
+
+  function dependencyQueuePush(dependency) {
+    // TODO make sure this dependency isn't already in the tasks list
+    dependencyQueue.push(dependency);
+  }
+
+  function findDependencyInDependencyList(dependency, dependencyList) {
+    dependencyList = dependencyList || dependencies;
+    for (var i = 0; i < dependencyList.length; i++) {
+      var d = dependencyList[i];
+      if (
+        dependency.groupId == d.groupId
+          && dependency.artifactId == d.artifactId
+          && dependency.version == d.version) {
+        return d;
+      }
+    }
+    return null;
+  }
+
+  function processDependency(dependency, callback) {
+    return resolveDependency(dependency, function(err, resolvedDependency) {
+      if (err) {
+        errors.push(err);
+        return callback(err);
+      }
+      dependencies.push(resolvedDependency);
+      return callback();
+    });
+  }
 
   function getClasspathFromDependencies(dependencyTree) {
     var classpath = [];
@@ -69,9 +90,9 @@ module.exports = function(options, callback) {
     if (currentDependency.xml && currentDependency.xml.project && currentDependency.xml.project.dependencyManagement) {
       var dependencyManagement = currentDependency.xml.project.dependencyManagement[0];
       if (dependencyManagement.dependencies) {
-        var dependencies = dependencyManagement.dependencies[0].dependency;
-        for (var i = 0; i < dependencies.length; i++) {
-          var d = dependencies[i];
+        var dependencyManagementDependencies = dependencyManagement.dependencies[0].dependency;
+        for (var i = 0; i < dependencyManagementDependencies.length; i++) {
+          var d = dependencyManagementDependencies[i];
           if (d.groupId[0] == '${project.groupId}') {
             d.groupId[0] = currentDependency.xml.project.groupId[0];
           }
@@ -91,7 +112,7 @@ module.exports = function(options, callback) {
         }
       }
     } else if (currentDependency.parent) {
-      return resolveVersion(currentDependency.parent, dependency);
+      return resolveVersion(findDependencyInDependencyList(currentDependency.parent) || currentDependency.parent, dependency);
     }
     return null;
   }
@@ -105,6 +126,11 @@ module.exports = function(options, callback) {
     }
     if (!dependency.version) {
       return callback(new Error('dependency missing version: ' + JSON.stringify(dependency)));
+    }
+
+    var foundDependency = findDependencyInDependencyList(dependency);
+    if (foundDependency) {
+      return callback(null, foundDependency);
     }
 
     console.log('resolving: ' + dependency.groupId + ':' + dependency.artifactId + ':' + dependency.version);
@@ -187,7 +213,7 @@ module.exports = function(options, callback) {
             artifactId: parent.artifactId[0],
             version: parent.version[0]
           };
-          processDependency(dependency.parent, function(err) {
+          return processDependency(dependency.parent, function(err) {
             if (err) {
               return callback(err);
             }
@@ -223,11 +249,16 @@ module.exports = function(options, callback) {
               if (!childDependency.version) {
                 childDependency.version = resolveVersion(dependency, childDependency);
                 if (!childDependency.version) {
-                  errors.push(new Error('Could not find version for ' + childDependency.groupId + ':' + childDependency.artifactId + ' for parent ' + dependency.groupId + ':' + dependency.artifactId));
-                  return;
+                  if (childDependency.groupId == dependency.groupId) {
+                    childDependency.version = dependency.version;
+                  }
+                  if (!childDependency.version) {
+                    errors.push(new Error('Could not find version for ' + childDependency.groupId + ':' + childDependency.artifactId + ' for parent ' + dependency.groupId + ':' + dependency.artifactId));
+                    return;
+                  }
                 }
               }
-              dependencyQueue.push(childDependency);
+              dependencyQueuePush(childDependency);
             });
           });
         }

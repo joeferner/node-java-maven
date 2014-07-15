@@ -6,7 +6,7 @@ var mvn = require('../');
 
 mvn({}, function(err, results) {
   if (err) {
-    console.error(err);
+    return console.error(err);
   }
-  console.log(results.classpath);
+  return console.log(results.classpath);
 });
