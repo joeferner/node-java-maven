@@ -3,6 +3,9 @@
   "version": "0.0.3",
   "description": "Utility for Node's java module to load mvn dependencies.",
   "main": "index.js",
+  "bin": {
+    "node-java-maven": "bin/node-java-maven" 
+  },
   "keywords": [
     "java",
     "maven",

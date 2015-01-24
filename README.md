@@ -6,7 +6,7 @@ node-java-maven
 
         npm install node-java-maven
         
-* Add a java key to your pom.xml
+* Add a java key to your package.json
 
         {
           "java": {
