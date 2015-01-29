@@ -61,7 +61,7 @@ module.exports = function(/*options, callback*/) {
       }
 
       return packageJson.java.dependencies.forEach(function(d) {
-        dependencyQueuePush(Dependency.createFromObject(d));
+        dependencyQueuePush(Dependency.createFromObject(d, 'package.json'));
       });
     });
   }
@@ -167,7 +167,7 @@ module.exports = function(/*options, callback*/) {
       var childDependencies = dependency
         .getDependencies()
         .filter(function(d) {
-          return d.scope != 'test';
+          return d.scope != 'test' && d.optional != true;
         });
       if (childDependencies.length > 0) {
         childDependencies.forEach(function(d) {
@@ -190,7 +190,7 @@ module.exports = function(/*options, callback*/) {
     });
 
     function download(dependency, pomPath, callback) {
-      return downloadFile(dependency.getPomPath(), pomPath, function(err, url) {
+      return downloadFile(dependency.getPomPath(), pomPath, dependency.reason, function(err, url) {
         if (err) {
           return callback(err);
         }
@@ -238,7 +238,7 @@ module.exports = function(/*options, callback*/) {
         dependency.jarPath = jarPath;
         return callback();
       } else {
-        return downloadFile(dependency.getJarPath(), jarPath, function(err, url) {
+        return downloadFile(dependency.getJarPath(), jarPath, dependency.reason, function(err, url) {
           if (err) {
             return callback(err);
           }
@@ -370,7 +370,7 @@ module.exports = function(/*options, callback*/) {
     return null;
   }
 
-  function downloadFile(urlPath, destinationFile, callback) {
+  function downloadFile(urlPath, destinationFile, reason, callback) {
     var repositoryIndex = 0;
     return mkdirp(path.dirname(destinationFile), function(err) {
       if (err) {
@@ -388,7 +388,7 @@ module.exports = function(/*options, callback*/) {
           var r = request(url);
           r.on('response', function(response) {
             if (response.statusCode != 200) {
-              error = new Error('download failed for ' + url + ' [status: ' + response.statusCode + ']');
+              error = new Error('download failed for ' + url + (reason ? ' (' + reason + ')' : '') + ' [status: ' + response.statusCode + ']');
               return callback();
             } else {
               var out = fs.createWriteStream(destinationFile);
