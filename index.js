@@ -215,8 +215,8 @@ module.exports = function(/*options, callback*/) {
           return callback(err);
         }
         dependency.pomXml = xml;
-        if (xml.project && xml.project.parent && xml.project.parent.length == 1) {
-          var parentDep = Dependency.createFromXmlObject(xml.project.parent[0]);
+        if (dependency.getParent()) {
+          var parentDep = dependency.getParent();
           console.log("resolving parent: " + parentDep);
           return resolvePom(parentDep, function(err, parentPomXml) {
             if (err) {
