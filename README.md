@@ -22,7 +22,7 @@ node-java-maven
         
 * Run node-java-maven
 
-        ./node_modules/node-java-maven/bin/node-java-maven
+        ./node_modules/.bin/node-java-maven
         
 * Use [node-java](https://github.com/joeferner/node-java) with node-java-maven to set your classpath
 
