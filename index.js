@@ -56,6 +56,10 @@ module.exports = function(/*options, callback*/) {
         return callback(new Error("Could not find java.dependencies property in package.json"));
       }
 
+      if (!(packageJson.java.dependencies instanceof Array)) {
+        return callback(new Error("java.dependencies property in package.json must be an array."));
+      }
+
       return packageJson.java.dependencies.forEach(function(d) {
         dependencyQueuePush(Dependency.createFromObject(d));
       });
@@ -81,7 +85,7 @@ module.exports = function(/*options, callback*/) {
   function dependencyQueuePush(dependency, callback) {
     var dependencyArray = dependency;
     if (!(dependencyArray instanceof Array)) {
-      dependencyArray = [ dependency ];
+      dependencyArray = [dependency];
     }
     dependencyArray.forEach(function(d) {
       d.state = 'queued';
@@ -211,6 +215,17 @@ module.exports = function(/*options, callback*/) {
           return callback(err);
         }
         dependency.pomXml = xml;
+        if (xml.project && xml.project.parent && xml.project.parent.length == 1) {
+          var parentDep = Dependency.createFromXmlObject(xml.project.parent[0]);
+          console.log("resolving parent: " + parentDep);
+          return resolvePom(parentDep, function(err, parentPomXml) {
+            if (err) {
+              return callback(err);
+            }
+            xml.project.parent[0].pomXml = parentPomXml;
+            return callback(null, xml);
+          });
+        }
         return callback(null, xml);
       });
     }
@@ -298,6 +313,38 @@ module.exports = function(/*options, callback*/) {
     if (!dependency.groupId || !dependency.artifactId || !dependency.version) {
       throw new Error('could not resolve unknowns: ' + dependency.toString());
     }
+
+    if (dependency.groupId) {
+      dependency.groupId = resolveSubstitutions(dependency.groupId, parent);
+    }
+    if (dependency.artifactId) {
+      dependency.artifactId = resolveSubstitutions(dependency.artifactId, parent);
+    }
+    if (dependency.version) {
+      dependency.version = resolveSubstitutions(dependency.version, parent);
+    }
+  }
+
+  function resolveSubstitutions(str, pom) {
+    return str.replace(/\$\{(.*?)\}/g, function(m, propertyName) {
+      return resolveProperty(propertyName, pom);
+    });
+  }
+
+  function resolveProperty(propertyName, pom) {
+    if (pom.pomXml && pom.pomXml.project) {
+      var project = pom.pomXml.project;
+      if (project.properties && project.properties.length == 1) {
+        var properties = project.properties[0];
+        if (properties[propertyName]) {
+          return properties[propertyName];
+        }
+      }
+      if (project.parent && project.parent.length == 1) {
+        return resolveProperty(propertyName, project.parent[0]);
+      }
+    }
+    throw new Error("Could not resolve property: " + propertyName);
   }
 
   function findInDependencyManagement(parent, dependency) {
@@ -373,3 +420,4 @@ module.exports = function(/*options, callback*/) {
     }
   }
 };
+
