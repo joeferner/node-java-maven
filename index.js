@@ -283,19 +283,11 @@ module.exports = function(/*options, callback*/) {
     var p;
 
     if (dependency.groupId == '${project.groupId}') {
-      if (!dependency.getParent()) {
-        throw new Error('Could not find parent project to get groupId');
-      }
-      p = dependencies[dependency.getParent().toString()];
-      dependency.groupId = p.groupId;
+      dependency.groupId = parent.groupId;
     }
 
     if (dependency.version == '${project.version}') {
-      if (!dependency.getParent()) {
-        throw new Error('Could not find parent project to get version');
-      }
-      p = dependencies[dependency.getParent().toString()];
-      dependency.version = p.version;
+      dependency.version = parent.version;
     }
 
     if (!dependency.version) {
