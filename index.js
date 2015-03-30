@@ -290,6 +290,10 @@ module.exports = function(/*options, callback*/) {
       dependency.version = parent.version;
     }
 
+    if (dependency.version == '${project.parent.version}') {
+      dependency.version = parent.version;
+    }
+
     if (!dependency.version) {
       var d = findInDependencyManagement(parent, dependency);
       if (d) {
