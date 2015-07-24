@@ -286,7 +286,7 @@ module.exports = function(/*options, callback*/) {
       dependency.groupId = parent.groupId;
     }
 
-    if (dependency.version == '${project.version}') {
+    if (dependency.version == '${project.version}' || dependency.version == '${version}') {
       dependency.version = parent.version;
     }
 
