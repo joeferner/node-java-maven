@@ -135,7 +135,7 @@ module.exports = function(/*options, callback*/) {
 
     function processJar(dependency, callback) {
       dependency.state = 'processJar';
-      if (dependency.getPackaging() == 'jar') {
+      if (dependency.getPackaging() == 'jar' || dependency.getPackaging() == 'bundle') {
         return resolveJar(dependency, function(err) {
           if (err) {
             return callback(err);
