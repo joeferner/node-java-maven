@@ -322,6 +322,14 @@ module.exports = function(/*options, callback*/) {
   }
 
   function resolveSubstitutions(str, pom) {
+    var m = str.match(/[\[\(](.*),(.*)[\]\)]/);
+    if(m) {
+      if(m[2]) {
+        return m[2];
+      } else if(m[1]) {
+        return m[1];
+      }
+    }
     return str.replace(/\$\{(.*?)\}/g, function(m, propertyName) {
       return resolveProperty(propertyName, pom);
     });
@@ -416,4 +424,3 @@ module.exports = function(/*options, callback*/) {
     }
   }
 };
-
