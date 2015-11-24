@@ -305,7 +305,7 @@ module.exports = function(/*options, callback*/) {
     if (!dependency.version && dependency.groupId == parent.groupId) {
       dependency.version = parent.version;
     }
-
+    
     if (!dependency.groupId || !dependency.artifactId || !dependency.version) {
       throw new Error('could not resolve unknowns: ' + dependency.toString());
     }
@@ -356,7 +356,17 @@ module.exports = function(/*options, callback*/) {
       .getDependencyManagementDependencies()
       .filter(function(d) {
         return (d.groupId == dependency.groupId) && (d.artifactId == dependency.artifactId);
-      });
+      })
+
+    list = list.filter(function(item, pos) {
+      for(var i = 0; i < pos; i++) {
+        if(list[i].toString() == item.toString()) {
+          return false;
+        }
+      }
+      return true;
+    });
+
     if (list.length == 1) {
       var d = list[0];
       if (d.version == '${project.version}') {
@@ -364,7 +374,7 @@ module.exports = function(/*options, callback*/) {
       }
       return d;
     } else if (list.length > 1) {
-      throw new Error('multiple matches found in dependency management for ' + dependency.toString());
+      throw new Error('multiple matches found in dependency management for ' + dependency.toString() + ' [' + list + ']');
     }
 
     var p = parent.getParent();
