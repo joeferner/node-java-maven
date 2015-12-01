@@ -305,7 +305,7 @@ module.exports = function(/*options, callback*/) {
     if (!dependency.version && dependency.groupId == parent.groupId) {
       dependency.version = parent.version;
     }
-    
+
     if (!dependency.groupId || !dependency.artifactId || !dependency.version) {
       throw new Error('could not resolve unknowns: ' + dependency.toString());
     }
@@ -331,7 +331,8 @@ module.exports = function(/*options, callback*/) {
       }
     }
     return str.replace(/\$\{(.*?)\}/g, function(m, propertyName) {
-      return resolveProperty(propertyName, pom);
+      var property = resolveProperty(propertyName, pom);
+      return property instanceof Array ? property.pop() : property;
     });
   }
 
