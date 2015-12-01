@@ -1,0 +1,11 @@
+{
+  "java": {
+    "dependencies": [
+      {
+        "groupId": "org.apache.lucene",
+        "artifactId": "lucene-core",
+        "version": "4.9.0"
+      }
+    ]
+  }
+}
