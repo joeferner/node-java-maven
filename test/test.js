@@ -1,6 +1,6 @@
-var fs = require('fs-extra')
-  , path = require('path')
-  , mvn = require('../index');
+var fs = require('fs-extra');
+var path = require('path');
+var mvn = require('../index');
 
 describe('maven', function() {
   var localRepository = path.join(__dirname, '.m2');
@@ -11,24 +11,20 @@ describe('maven', function() {
   afterEach(function(done) {
     fs.remove(localRepository, done);
   });
-  it('should pull the maven dependencies for ormlite-jdbc 4.48', function(done) {
-    this.timeout(15000);
-    mvn({localRepository: localRepository, packageJsonPath: __dirname+'/ormlite-jdbc-package.json'}, function(err, mvnResults) {
-      if (err) {
-        done(err);
-        return console.error('could not resolve maven dependencies', err);
-      }
-      done();
+  testJson('com.j256.ormlite_ormlite-jdbc_4.48.json');
+  testJson('org.apache.lucene_lucene-core_4.9.0.json');
+  testJson('org.jboss.weld_weld-osgi-bundle_1.1.4.Final.json');
+  
+  function testJson(jsonPath) {
+    it('should pull the maven dependencies for ' + jsonPath, function(done) {
+      this.timeout(15000);
+      mvn({localRepository: localRepository, packageJsonPath: path.join(__dirname, jsonPath)}, function(err, mvnResults) {
+        if (err) {
+          done(err);
+          return console.error('could not resolve maven dependencies', err);
+        }
+        done();
+      });
     });
-  });
-  it('should pull the maven dependencies for lucene-core 4.9.0', function(done) {
-    this.timeout(15000);
-    mvn({localRepository: localRepository, packageJsonPath: __dirname+'/lucene-core-package.json'}, function(err, mvnResults) {
-      if (err) {
-        done(err);
-        return console.error('could not resolve maven dependencies', err);
-      }
-      done();
-    });
-  });
+  }
 });
