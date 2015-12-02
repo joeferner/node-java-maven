@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/joeferner/node-java-maven.svg)](https://travis-ci.org/joeferner/node-java-maven)
 
 node-java-maven
 ---------------
