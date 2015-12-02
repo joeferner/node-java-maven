@@ -286,14 +286,6 @@ module.exports = function(/*options, callback*/) {
       dependency.groupId = parent.groupId;
     }
 
-    if (dependency.version == '${project.version}' || dependency.version == '${version}') {
-      dependency.version = parent.version;
-    }
-
-    if (dependency.version == '${project.parent.version}') {
-      dependency.version = parent.version;
-    }
-
     if (!dependency.version) {
       var d = findInDependencyManagement(parent, dependency);
       if (d) {
@@ -305,7 +297,7 @@ module.exports = function(/*options, callback*/) {
     if (!dependency.version && dependency.groupId == parent.groupId) {
       dependency.version = parent.version;
     }
-    
+
     if (!dependency.groupId || !dependency.artifactId || !dependency.version) {
       throw new Error('could not resolve unknowns: ' + dependency.toString());
     }
@@ -319,6 +311,14 @@ module.exports = function(/*options, callback*/) {
     if (dependency.version) {
       dependency.version = resolveSubstitutions(dependency.version, parent);
     }
+
+    if (dependency.version == '${project.version}' || dependency.version == '${version}') {
+      dependency.version = parent.version;
+    }
+
+    if (dependency.version == '${project.parent.version}') {
+      dependency.version = parent.version;
+    }
   }
 
   function resolveSubstitutions(str, pom) {
@@ -331,7 +331,8 @@ module.exports = function(/*options, callback*/) {
       }
     }
     return str.replace(/\$\{(.*?)\}/g, function(m, propertyName) {
-      return resolveProperty(propertyName, pom);
+      var property = resolveProperty(propertyName, pom);
+      return property instanceof Array ? property.slice(-1) : property;
     });
   }
 

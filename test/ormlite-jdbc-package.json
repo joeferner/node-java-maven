@@ -1,0 +1,11 @@
+{
+  "java": {
+    "dependencies": [
+      {
+        "groupId": "com.j256.ormlite",
+        "artifactId": "ormlite-jdbc",
+        "version": "4.48"
+      }
+    ]
+  }
+}
