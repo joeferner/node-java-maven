@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/joeferner/node-java-maven.svg)](https://travis-ci.org/joeferner/node-java-maven)
+[![npm version](https://badge.fury.io/js/node-java-maven.svg)](https://badge.fury.io/js/node-java-maven)
 
 node-java-maven
 ---------------
