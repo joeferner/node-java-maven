@@ -309,15 +309,12 @@ module.exports = function(/*options, callback*/) {
       dependency.artifactId = resolveSubstitutions(dependency.artifactId, parent);
     }
     if (dependency.version) {
-      dependency.version = resolveSubstitutions(dependency.version, parent);
-    }
-
-    if (dependency.version == '${project.version}' || dependency.version == '${version}') {
-      dependency.version = parent.version;
-    }
-
-    if (dependency.version == '${project.parent.version}') {
-      dependency.version = parent.version;
+      var changed;
+      do {
+        var newValue = resolveSubstitutions(dependency.version, parent);
+        changed = dependency.version != newValue;
+        dependency.version = newValue;
+      } while(changed);
     }
   }
 
@@ -331,6 +328,12 @@ module.exports = function(/*options, callback*/) {
       }
     }
     return str.replace(/\$\{(.*?)\}/g, function(m, propertyName) {
+      if(propertyName == 'project.version' || propertyName == 'version') {
+        return pom.version;
+      }
+      if(propertyName == 'project.parent.version') {
+        return pom.version;
+      }
       var property = resolveProperty(propertyName, pom);
       return property instanceof Array ? property.slice(-1) : property;
     });

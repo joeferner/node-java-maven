@@ -1,0 +1,11 @@
+{
+  "java": {
+    "dependencies": [
+      {
+        "groupId": "org.apache.pdfbox",
+        "artifactId": "pdfbox",
+        "version": "1.8.10"
+      }
+    ]
+  }
+}
