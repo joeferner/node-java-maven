@@ -303,31 +303,23 @@ module.exports = function(/*options, callback*/) {
     }
 
     if (dependency.groupId) {
-      dependency.groupId = resolveSubstitutions(dependency.groupId, parent);
+      dependency.groupId = resolveSubstitutions(dependency.groupId, parent, dependency);
     }
     if (dependency.artifactId) {
-      dependency.artifactId = resolveSubstitutions(dependency.artifactId, parent);
+      dependency.artifactId = resolveSubstitutions(dependency.artifactId, parent, dependency);
     }
     if (dependency.version) {
       var changed;
       do {
-        var newValue = resolveSubstitutions(dependency.version, parent);
+        var newValue = resolveSubstitutions(dependency.version, parent, dependency);
         changed = dependency.version != newValue;
         dependency.version = newValue;
       } while(changed);
     }
   }
 
-  function resolveSubstitutions(str, pom) {
-    var m = str.match(/[\[\(](.*),(.*)[\]\)]/);
-    if(m) {
-      if(m[2]) {
-        return m[2];
-      } else if(m[1]) {
-        return m[1];
-      }
-    }
-    return str.replace(/\$\{(.*?)\}/g, function(m, propertyName) {
+  function resolveSubstitutions(str, pom, dependency) {
+    str = str.replace(/\$\{(.*?)\}/g, function(m, propertyName) {
       if(propertyName == 'project.version' || propertyName == 'version') {
         return pom.version;
       }
@@ -337,6 +329,34 @@ module.exports = function(/*options, callback*/) {
       var property = resolveProperty(propertyName, pom);
       return property instanceof Array ? property.slice(-1) : property;
     });
+    return resolveVersionRange(str, dependency);
+  }
+  
+  function resolveVersionRange(str, dependency) {
+    var m = str.match(/[\[\(](.*),(.*)[\]\)]/);
+    if(m) {
+      var existingDependency = findExistingDependencyWithoutVersion(dependency);
+      if (existingDependency) {
+        return existingDependency.version;
+      }
+      if(m[2]) {
+        return m[2];
+      } else if(m[1]) {
+        return m[1];
+      }
+    }
+    return str;
+  }
+  
+  function findExistingDependencyWithoutVersion(dependency) {
+    var matching = Object.keys(dependencies).filter(function(dependencyId) {
+      var d = dependencies[dependencyId]; 
+      return (d.groupId == dependency.groupId) && (d.artifactId == dependency.artifactId);
+    });
+    if (matching.length == 1) {
+      return dependencies[matching[0]];
+    }
+    return null;
   }
 
   function resolveProperty(propertyName, pom) {

@@ -3,6 +3,11 @@
     "dependencies": [
       {
         "groupId": "com.amazonaws",
+        "artifactId": "aws-java-sdk-core",
+        "version": "1.9.6"
+      },
+      {
+        "groupId": "com.amazonaws",
         "artifactId": "aws-apigateway-importer",
         "version": "1.0.1"
       }
