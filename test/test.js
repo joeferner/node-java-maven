@@ -19,8 +19,7 @@ describe('maven', function() {
       this.timeout(60 * 1000);
       var opts = {
         localRepository: localRepository, 
-        packageJsonPath: path.join(__dirname, jsonPath),
-        concurrency: 10
+        packageJsonPath: path.join(__dirname, jsonPath)
       };
       mvn(opts, function(err, mvnResults) {
         if (err) {

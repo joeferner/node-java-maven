@@ -30,7 +30,7 @@ module.exports = function(/*options, callback*/) {
     }
   ];
   options.localRepository = options.localRepository || path.join(getUserHome(), '.m2/repository');
-  options.concurrency = options.concurrency || 10;
+  options.concurrency = options.concurrency || 1;
 
   var dependencies = {};
   var errors = [];
