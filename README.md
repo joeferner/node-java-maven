@@ -42,3 +42,40 @@ node-java-maven
           
           var Version = java.import('org.apache.lucene.util.Version');
         });
+
+* Exclusions dependencies with "exclusions" property
+
+        {
+          "java": {
+            "exclusions": [
+              {
+                "groupId": "javax.activation",
+                "artifactId": "activation"
+              },
+              {
+                "groupId": "javax.ejb",
+                "artifactId": "ejb"
+              },
+              {
+                "groupId": "javax.faces",
+                "artifactId": "jsf-api"
+              },
+              {
+                "groupId": "javax.jms",
+                "artifactId": "jms"
+              },
+              {
+                "groupId": "javax.mail",
+                "artifactId": "mail"
+              }
+            ],
+            "dependencies": [
+              {
+                "groupId": "org.springframework",
+                "artifactId": "spring",
+                "version": "2.0.6"
+              }
+            ]
+          }
+        }
+
