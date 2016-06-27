@@ -33,6 +33,7 @@ module.exports = function(/*options, callback*/) {
   options.concurrency = options.concurrency || 1;
 
   var dependencies = {};
+  var exclusions = [];
   var errors = [];
 
   var dependencyQueue = async.queue(processDependency, options.concurrency);
@@ -59,6 +60,16 @@ module.exports = function(/*options, callback*/) {
       if (!(packageJson.java.dependencies instanceof Array)) {
         return callback(new Error("java.dependencies property in package.json must be an array."));
       }
+
+      if (packageJson.java.exclusions) {
+        if (!(packageJson.java.exclusions instanceof Array)) {
+          return callback(new Error("java.exclusions property in package.json must be an array."));
+        } else {
+          exclusions = packageJson.java.exclusions;
+        }
+      }
+
+
 
       return packageJson.java.dependencies.forEach(function(d) {
         dependencyQueuePush(Dependency.createFromObject(d, 'package.json'));
@@ -167,7 +178,13 @@ module.exports = function(/*options, callback*/) {
       var childDependencies = dependency
         .getDependencies()
         .filter(function(d) {
-          return d.scope != 'test' && d.optional != true;
+          var isExclusion = exclusions.reduce(function(isExclusion,exclusion){
+            if (isExclusion){
+              return isExclusion;
+            }
+            return exclusion.groupId === d.groupId && exclusion.artifactId === d.artifactId;
+          },false );
+          return d.scope != 'test' && d.optional != true  && !isExclusion;
         });
       if (childDependencies.length > 0) {
         childDependencies.forEach(function(d) {
