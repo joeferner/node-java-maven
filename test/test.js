@@ -14,6 +14,7 @@ describe('maven', function() {
   testJson('com.amazonaws_aws-apigateway-importer_1.0.1.json');
   testJson('org.apache.pdfbox_pdfbox_1.8.10.json');
   testJson('org.springframework_spring_2.0.6.json');
+  testJson('com.googlecode.netlib-java.netlib-java.json');
 
   function testJson(jsonPath) {
     it('should pull the maven dependencies for ' + jsonPath, function(done) {
