@@ -18,7 +18,7 @@ describe('maven', function() {
 
   function testJson(jsonPath) {
     it('should pull the maven dependencies for ' + jsonPath, function(done) {
-      this.timeout(60 * 1000);
+      this.timeout(90 * 1000);
       var opts = {
         localRepository: localRepository, 
         packageJsonPath: path.join(__dirname, jsonPath)
