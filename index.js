@@ -341,7 +341,10 @@ module.exports = function(/*options, callback*/) {
         return pom.version;
       }
       if(propertyName == 'project.parent.version') {
-        return pom.version;
+          return pom.pomXml.project.parent[0].version[0];
+      }
+      if(propertyName == 'project.parent.groupId') {
+          return pom.pomXml.project.parent[0].groupId[0]
       }
       var property = resolveProperty(propertyName, pom);
       return property instanceof Array ? property.slice(-1) : property;
