@@ -442,8 +442,20 @@ module.exports = function(/*options, callback*/) {
         function(callback) {
           var repository = options.repositories[repositoryIndex];
           var url = repository.url + urlPath;
+          var req_options = { url: url };
+          if (repository.hasOwnProperty('credentials')) {
+            var username = repository.credentials.username;
+            var password = repository.credentials.password;
+            req_options = {
+              url: url,
+              auth: {
+                user: username,
+                password: password
+              }
+            };
+          }
           debug('downloading ' + url);
-          var r = request(url);
+          var r = request(req_options);
           r.on('response', function(response) {
             if (response.statusCode != 200) {
               error = new Error('download failed for ' + url + (reason ? ' (' + reason + ')' : '') + ' [status: ' + response.statusCode + ']');

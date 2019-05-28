@@ -79,3 +79,26 @@ node-java-maven
           }
         }
 
+* Add another maven repo
+
+        {
+          "java": {
+            "repositories": [
+              {
+                "id": "maven",
+                "url": "http://example/repository/maven-public/",
+                "credentials": {
+                  "username": "user",
+                  "password": "pass"
+                }
+              }
+            ],
+            "dependencies": [
+              {
+                "groupId": "org.apache.lucene",
+                "artifactId": "lucene-core",
+                "version": "4.9.0"
+              }
+            ]
+          }
+        }
