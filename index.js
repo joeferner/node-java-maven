@@ -238,11 +238,11 @@ module.exports = function(/*options, callback*/) {
         if (err) {
           return callback(err);
         }
-        return loadFile(dependency, pomPath, data, callback);
+        return loadFile(dependency, data, callback);
       });
     }
 
-    function loadFile(dependency, pomPath, data, callback) {
+    function loadFile(dependency, data, callback) {
       xml2js.parseString(data, function(err, xml) {
         if (err) {
           return callback(err);
@@ -250,8 +250,7 @@ module.exports = function(/*options, callback*/) {
         if (dependency.pomPath.endsWith('maven-metadata.xml')) {
           var snapshotVersion = xml.metadata.artifactId + '-' + xml.metadata.versioning["0"].snapshotVersions["0"].snapshotVersion["0"].value["0"];
           dependency.pomPath = dependency.getPomPath().substring(0, dependency.getPomPath().lastIndexOf('/') + 1) + snapshotVersion + '.pom';
-          pomPath = pomPath.substring(0, pomPath.lastIndexOf(path.sep) + 1) + snapshotVersion + '.pom';
-          return download(dependency, pomPath, callback);
+          return download(dependency, path.resolve(options.localRepository, dependency.getPomPath()), callback);
         }
         dependency.pomXml = xml;
         if (dependency.getParent()) {
