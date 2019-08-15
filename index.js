@@ -39,8 +39,8 @@ module.exports = function(/*options, callback*/) {
   var dependencyQueue = async.queue(processDependency, options.concurrency);
   dependencyQueue.drain = complete;
 
-  const _cliProgress = require('cli-progress');
-  const progressBar = new _cliProgress.SingleBar({
+  var _cliProgress = require('cli-progress');
+  var progressBar = new _cliProgress.SingleBar({
     format: 'Java Dependencies Loading [{bar}] {percentage}% || {value}/{total}',
     barCompleteChar: '\u2588',
     barIncompleteChar: '\u2591',
