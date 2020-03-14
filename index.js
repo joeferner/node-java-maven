@@ -26,7 +26,7 @@ module.exports = function(/*options, callback*/) {
   options.repositories = options.repositories || [
     {
       id: 'maven-central',
-      url: 'http://central.maven.org/maven2/'
+      url: 'http://repo1.maven.org/maven2/'
     }
   ];
   options.localRepository = options.localRepository || path.join(getUserHome(), '.m2/repository');
