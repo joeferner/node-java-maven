@@ -39,6 +39,16 @@ module.exports = function(/*options, callback*/) {
   var dependencyQueue = async.queue(processDependency, options.concurrency);
   dependencyQueue.drain = complete;
 
+  var _cliProgress = require('cli-progress');
+  var progressBar = new _cliProgress.SingleBar({
+    format: 'Java Dependencies Loading [{bar}] {percentage}% || {value}/{total}',
+    barCompleteChar: '\u2588',
+    barIncompleteChar: '\u2591',
+    hideCursor: true,
+    clearOnComplete: false,
+    stopOnComplete: false
+  });
+
   return go(callback);
 
   /***************************************************************************************/
@@ -49,6 +59,7 @@ module.exports = function(/*options, callback*/) {
         return callback(err);
       }
 
+      progressBar.start(packageJson.java.totalDependencies != null ? packageJson.java.totalDependencies : 100, 0);
       if (packageJson.java.repositories) {
         options.repositories = options.repositories.concat(packageJson.java.repositories);
       }
@@ -69,12 +80,11 @@ module.exports = function(/*options, callback*/) {
         }
       }
 
-
-
       return packageJson.java.dependencies.forEach(function(d) {
         dependencyQueuePush(Dependency.createFromObject(d, 'package.json'));
       });
     });
+    progressBar.stop();
   }
 
   function complete() {
@@ -99,6 +109,7 @@ module.exports = function(/*options, callback*/) {
       dependencyArray = [dependency];
     }
     dependencyArray.forEach(function(d) {
+      progressBar.increment()
       d.state = 'queued';
 
       if (!d.groupId) {
@@ -207,7 +218,12 @@ module.exports = function(/*options, callback*/) {
     });
 
     function download(dependency, pomPath, callback) {
-      return downloadFile(dependency.getPomPath(), pomPath, dependency.reason, function(err, url) {
+      var dependencyPomPath = dependency.pomPath != null ? dependency.pomPath : dependency.getPomPath();
+      if (dependencyPomPath.endsWith('-SNAPSHOT.pom')) {
+        dependencyPomPath = dependencyPomPath.substring(0, dependencyPomPath.lastIndexOf('/') + 1) + 'maven-metadata.xml';
+        pomPath = pomPath.substring(0, pomPath.lastIndexOf(path.sep) + 1) + 'maven-metadata.xml';
+      }
+      return downloadFile(dependencyPomPath, pomPath, dependency.reason, function(err, url) {
         if (err) {
           return callback(err);
         }
@@ -230,6 +246,11 @@ module.exports = function(/*options, callback*/) {
       xml2js.parseString(data, function(err, xml) {
         if (err) {
           return callback(err);
+        }
+        if (dependency.pomPath.endsWith('maven-metadata.xml')) {
+          var snapshotVersion = xml.metadata.artifactId + '-' + xml.metadata.versioning["0"].snapshotVersions["0"].snapshotVersion["0"].value["0"];
+          dependency.pomPath = dependency.getPomPath().substring(0, dependency.getPomPath().lastIndexOf('/') + 1) + snapshotVersion + '.pom';
+          return download(dependency, path.resolve(options.localRepository, dependency.getPomPath()), callback);
         }
         dependency.pomXml = xml;
         if (dependency.getParent()) {
@@ -255,7 +276,12 @@ module.exports = function(/*options, callback*/) {
         dependency.jarPath = jarPath;
         return callback();
       } else {
-        return downloadFile(dependency.getJarPath(), jarPath, dependency.reason, function(err, url) {
+        var dependencyJarPath = dependency.getJarPath();
+        if (dependency.version.endsWith('-SNAPSHOT')) {
+          var snapshotVersion = dependency.pomUrl.substring(dependency.pomUrl.lastIndexOf('/') + 1, dependency.pomUrl.lastIndexOf('.'));
+          dependencyJarPath = dependencyJarPath.substring(0, dependencyJarPath.lastIndexOf('/') + 1) + snapshotVersion + '.jar';
+        }
+        return downloadFile(dependencyJarPath, jarPath, dependency.reason, function(err, url) {
           if (err) {
             return callback(err);
           }
